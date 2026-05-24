@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: cloudsim
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 120
+    plan: free
+    envVars:
+      - key: FLASK_DEBUG
+        value: false
+      - key: INITIAL_NODE_COUNT
+        value: 3
+      - key: MIN_NODE_COUNT
+        value: 2
+      - key: MAX_NODE_COUNT
+        value: 8
+      - key: NODE_CAPACITY
+        value: 100
+      - key: SCALE_UP_THRESHOLD
+        value: 80
+      - key: SCALE_DOWN_THRESHOLD
+        value: 20
+      - key: SCALE_UP_CYCLES
+        value: 2
+      - key: SCALE_DOWN_CYCLES
+        value: 4

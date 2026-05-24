@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudSim | Simulador Cloud</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Simulador cloud academico</p>
+                <h1>CloudSim</h1>
+            </div>
+            <div class="topbar-actions">
+                <span id="connectionStatus" class="status-pill status-idle">Conectando</span>
+                <span id="simulationState" class="status-pill status-idle">En espera</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="metrics-grid" aria-label="Metricas principales">
+                <article class="metric-card">
+                    <span>Solicitudes totales</span>
+                    <strong id="totalRequests">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Procesadas</span>
+                    <strong id="processedRequests">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Solicitudes activas</span>
+                    <strong id="activeRequests">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Uso promedio</span>
+                    <strong id="averageLoad">0%</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Nodos activos</span>
+                    <strong id="activeNodes">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Disponibilidad</span>
+                    <strong id="availability">0%</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Nodos caidos</span>
+                    <strong id="failedNodes">0</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Carga total</span>
+                    <strong id="totalLoad">0</strong>
+                </article>
+            </section>
+
+            <section class="panel traffic-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Trafico artificial</p>
+                        <h2>Usuarios virtuales</h2>
+                    </div>
+                    <span><strong id="virtualUsers">0</strong> usuarios en simulacion</span>
+                </div>
+                <div id="trafficControls" class="traffic-controls" aria-label="Generar usuarios virtuales">
+                    <button class="primary-button" type="button" data-users="5">Generar 5 usuarios</button>
+                    <button class="secondary-button" type="button" data-users="20">Generar 20 usuarios</button>
+                    <button class="secondary-button" type="button" data-users="50">Generar 50 usuarios</button>
+                </div>
+            </section>
+
+            <section class="workspace-grid autoscale-grid">
+                <div class="panel autoscale-panel">
+                <div class="panel-header">
+                    <div>
+                        <p class="eyebrow">Alta disponibilidad</p>
+                        <h2>Balanceo y autoescalado</h2>
+                    </div>
+                    <span id="autoscalingStatus" class="status-pill status-ok">Activo</span>
+                </div>
+                <div class="autoscale-summary">
+                    <div>
+                        <span>Balanceador</span>
+                        <strong id="balancerStrategy">Menor carga</strong>
+                    </div>
+                    <div>
+                        <span>Disponibles</span>
+                        <strong id="availableNodes">0 nodos</strong>
+                    </div>
+                    <div>
+                        <span>Escalar arriba</span>
+                        <strong id="scaleUpRule">> 80%</strong>
+                    </div>
+                    <div>
+                            <span>Escalar abajo</span>
+                            <strong id="scaleDownRule">&lt; 20%</strong>
+                        </div>
+                        <div>
+                            <span>Minimo</span>
+                            <strong id="minNodes">2 nodos</strong>
+                        </div>
+                    <div>
+                        <span>Maximo</span>
+                        <strong id="maxNodes">8 nodos</strong>
+                    </div>
+                </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Capacidad</p>
+                            <h2>Nodos activos</h2>
+                        </div>
+                    </div>
+                    <div class="chart-box compact-chart">
+                        <canvas id="nodesChart" aria-label="Grafica de nodos activos"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="workspace-grid">
+                <div class="panel topology-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Infraestructura</p>
+                            <h2>Flujo cloud</h2>
+                        </div>
+                        <span class="status-pill status-ok">REST / JSON</span>
+                    </div>
+
+                    <div class="topology">
+                        <div class="topology-node user-zone">
+                            <span class="node-icon">U</span>
+                            <strong>Usuarios</strong>
+                            <small><span id="topologyUsers">0</span> generando trafico</small>
+                        </div>
+                        <div class="flow-line"></div>
+                        <div class="topology-node balancer-zone">
+                            <span class="node-icon">LB</span>
+                            <strong>Load Balancer</strong>
+                            <small><span id="topologyActiveRequests">0</span> activas · ultimo <span id="lastBalancerTarget">N/A</span></small>
+                        </div>
+                        <div class="flow-line"></div>
+                        <div class="topology-node compute-zone">
+                            <span class="node-icon">VM</span>
+                            <strong>Nodos cloud</strong>
+                            <small>Carga <span id="topologyLoad">0/0</span></small>
+                        </div>
+                        <div class="flow-line"></div>
+                        <div class="topology-node storage-zone">
+                            <span class="node-icon">DB</span>
+                            <strong>SQLite</strong>
+                            <small>Eventos y metricas</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Monitoreo</p>
+                            <h2>Carga promedio</h2>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="loadChart" aria-label="Grafica de carga promedio"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="workspace-grid lower-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Computo</p>
+                            <h2>Nodos virtuales</h2>
+                        </div>
+                        <button id="createNodeButton" class="primary-button" type="button">Crear nodo</button>
+                    </div>
+                    <div id="nodesContainer" class="nodes-grid"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Solicitudes</p>
+                            <h2>Actividad en vivo</h2>
+                        </div>
+                    </div>
+                    <div class="chart-box compact-chart">
+                        <canvas id="trafficChart" aria-label="Grafica de solicitudes activas"></canvas>
+                    </div>
+                    <div id="requestsContainer" class="requests-list"></div>
+                </div>
+            </section>
+
+            <section class="workspace-grid activity-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Control plane</p>
+                            <h2>Eventos cloud</h2>
+                        </div>
+                    </div>
+                    <div id="eventsContainer" class="events-list"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
