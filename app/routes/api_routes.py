@@ -146,3 +146,93 @@ def release_request(node_id):
             "metrics": node_manager.summary(),
         }
     )
+
+@api_bp.post("/reset")
+def reset_simulation():
+    """Reinicia toda la simulación al estado inicial."""
+    from app.services.traffic_service import traffic_simulator
+    from app.services.node_service import node_manager
+    from app.services.load_balancer_service import load_balancer
+    from app.services.autoscaling_service import auto_scaler
+    from config import Config
+
+    # Limpiar tráfico
+    with traffic_simulator._lock:
+        traffic_simulator._users.clear()
+        traffic_simulator._active_requests.clear()
+        traffic_simulator._events.clear()
+        traffic_simulator._history.clear()
+        traffic_simulator._next_user_id = 1
+        traffic_simulator._next_request_id = 1
+        traffic_simulator.running = False
+
+    # Limpiar nodos y recrear los iniciales
+    node_manager._nodes.clear()
+    node_manager._next_id = 1
+    for _ in range(Config.INITIAL_NODE_COUNT):
+        node_manager.create_node()
+
+    # Resetear balanceador
+    load_balancer._round_robin_index = 0
+    load_balancer.last_target_node_id = None
+
+    # Resetear autoescalador
+    auto_scaler._high_load_cycles = 0
+    auto_scaler._low_load_cycles = 0
+
+    return jsonify({"status": "reset", "message": "Simulación reiniciada correctamente."})
+
+@api_bp.post("/traffic/pause")
+def toggle_pause():
+    """Pausa o reanuda la generación de tráfico."""
+    from app.services.traffic_service import traffic_simulator
+    with traffic_simulator._lock:
+        traffic_simulator.paused = not traffic_simulator.paused
+    return jsonify({"paused": traffic_simulator.paused})
+
+@api_bp.delete("/traffic/users")
+def remove_users():
+    """Elimina N usuarios virtuales de la simulación."""
+    from app.services.traffic_service import traffic_simulator
+    payload = request.get_json(silent=True) or {}
+    count = int(payload.get("count", 1))
+
+    with traffic_simulator._lock:
+        # Toma los últimos N user_ids y los elimina
+        ids_to_remove = list(traffic_simulator._users.keys())[-count:]
+        for uid in ids_to_remove:
+            traffic_simulator._users.pop(uid, None)
+        traffic_simulator.running = bool(traffic_simulator._users)
+
+    removed = len(ids_to_remove)
+    return jsonify({
+        "removed": removed,
+        "remaining": len(traffic_simulator._users)
+    })
+
+@api_bp.post("/config")
+def update_config():
+    """Actualiza parámetros del simulador en caliente sin reiniciar."""
+    from app.services.autoscaling_service import auto_scaler
+    from app.services.load_balancer_service import load_balancer
+    from app.services.node_service import node_manager
+    payload = request.get_json(silent=True) or {}
+
+    if "scale_up_threshold" in payload:
+        auto_scaler.scale_up_threshold = int(payload["scale_up_threshold"])
+    if "scale_down_threshold" in payload:
+        auto_scaler.scale_down_threshold = int(payload["scale_down_threshold"])
+    if "min_nodes" in payload:
+        auto_scaler.min_nodes = int(payload["min_nodes"])
+    if "max_nodes" in payload:
+        auto_scaler.max_nodes = int(payload["max_nodes"])
+    if "strategy" in payload:
+        load_balancer.strategy = payload["strategy"]  # "least_load" o "round_robin"
+
+    return jsonify({
+        "scale_up_threshold": auto_scaler.scale_up_threshold,
+        "scale_down_threshold": auto_scaler.scale_down_threshold,
+        "min_nodes": auto_scaler.min_nodes,
+        "max_nodes": auto_scaler.max_nodes,
+        "strategy": load_balancer.strategy,
+    })

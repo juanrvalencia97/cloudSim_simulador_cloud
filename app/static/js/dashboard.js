@@ -28,34 +28,41 @@ function renderMetrics(metrics) {
 
 function renderSimulationState(simulation) {
     const element = document.getElementById("simulationState");
+    if (!element) return;
 
-    if (!element) {
-        return;
+    const paused = simulation.paused;
+    const running = simulation.running;
+
+    if (paused) {
+        element.textContent = "Pausado";
+        element.className = "status-pill status-warning";
+    } else if (running) {
+        element.textContent = "Ejecutándose";
+        element.className = "status-pill status-ok";
+    } else {
+        element.textContent = "En espera";
+        element.className = "status-pill status-idle";
     }
 
-    element.textContent = simulation.running ? "Ejecutandose" : "En espera";
-    element.classList.toggle("status-ok", simulation.running);
-    element.classList.toggle("status-idle", !simulation.running);
+    // Actualiza texto del botón de pausa
+    const pauseBtn = document.getElementById("pauseButton");
+    if (pauseBtn) pauseBtn.textContent = paused ? "▶ Reanudar" : "⏸ Pausar tráfico";
 }
 
 
 function renderAutoscaling(autoscaling) {
-    if (!autoscaling) {
-        return;
-    }
+    if (!autoscaling) return;
 
     const statusElement = document.getElementById("autoscalingStatus");
-
     if (statusElement) {
         statusElement.textContent = autoscaling.enabled ? "Activo" : "Inactivo";
         statusElement.classList.toggle("status-ok", autoscaling.enabled);
         statusElement.classList.toggle("status-idle", !autoscaling.enabled);
     }
 
-    setText("scaleUpRule", `> ${autoscaling.scale_up_threshold}%`);
-    setText("scaleDownRule", `< ${autoscaling.scale_down_threshold}%`);
-    setText("minNodes", `${autoscaling.min_nodes} nodos`);
-    setText("maxNodes", `${autoscaling.max_nodes} nodos`);
+    setText("availableNodes", `${autoscaling.available_nodes ?? "?"} nodos`);
+    // Los inputs cfgScaleUp, cfgScaleDown, etc. NO se sobreescriben aquí
+    // para no interrumpir al usuario mientras escribe
 }
 
 

@@ -60,15 +60,26 @@
             <section class="panel traffic-panel">
                 <div class="panel-header">
                     <div>
-                        <p class="eyebrow">Trafico artificial</p>
+                        <p class="eyebrow">Tráfico artificial</p>
                         <h2>Usuarios virtuales</h2>
                     </div>
-                    <span><strong id="virtualUsers">0</strong> usuarios en simulacion</span>
+                    <span><strong id="virtualUsers">0</strong> usuarios en simulación</span>
                 </div>
                 <div id="trafficControls" class="traffic-controls" aria-label="Generar usuarios virtuales">
                     <button class="primary-button" type="button" data-users="5">Generar 5 usuarios</button>
                     <button class="secondary-button" type="button" data-users="20">Generar 20 usuarios</button>
                     <button class="secondary-button" type="button" data-users="50">Generar 50 usuarios</button>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;">
+                    <button id="pauseButton" class="secondary-button" type="button">⏸ Pausar tráfico</button>
+                    <input id="removeUsersCount" type="number" min="1" value="5"
+                        style="width:70px; padding:0 8px; height:38px; border:1px solid var(--border); border-radius:8px;">
+                    <button id="removeUsersButton" class="secondary-button" type="button">Eliminar N usuarios</button>
+                    <button id="resetButton" type="button"
+                            style="margin-left:auto; min-height:38px; border-radius:8px; border:1px solid var(--danger);
+                                background:white; color:var(--danger); font-weight:700; padding:0 14px; cursor:pointer;">
+                        🔄 Reiniciar simulación
+                    </button>
                 </div>
             </section>
 
@@ -84,28 +95,38 @@
                 <div class="autoscale-summary">
                     <div>
                         <span>Balanceador</span>
-                        <strong id="balancerStrategy">Menor carga</strong>
+                        <select id="cfgStrategy" style="margin-top:8px; width:100%; border:1px solid var(--border); border-radius:6px; padding:4px;">
+                            <option value="least_load">Menor carga</option>
+                            <option value="round_robin">Round robin</option>
+                        </select>
                     </div>
                     <div>
                         <span>Disponibles</span>
                         <strong id="availableNodes">0 nodos</strong>
                     </div>
                     <div>
-                        <span>Escalar arriba</span>
-                        <strong id="scaleUpRule">> 80%</strong>
+                        <span>Escalar arriba (%)</span>
+                        <input id="cfgScaleUp" type="number" min="1" max="100" value="80"
+                            style="margin-top:8px; width:100%; border:1px solid var(--border); border-radius:6px; padding:4px; font-size:16px; font-weight:900;">
                     </div>
                     <div>
-                            <span>Escalar abajo</span>
-                            <strong id="scaleDownRule">&lt; 20%</strong>
-                        </div>
-                        <div>
-                            <span>Minimo</span>
-                            <strong id="minNodes">2 nodos</strong>
-                        </div>
-                    <div>
-                        <span>Maximo</span>
-                        <strong id="maxNodes">8 nodos</strong>
+                        <span>Escalar abajo (%)</span>
+                        <input id="cfgScaleDown" type="number" min="1" max="100" value="20"
+                            style="margin-top:8px; width:100%; border:1px solid var(--border); border-radius:6px; padding:4px; font-size:16px; font-weight:900;">
                     </div>
+                    <div>
+                        <span>Mínimo nodos</span>
+                        <input id="cfgMinNodes" type="number" min="1" max="20" value="2"
+                            style="margin-top:8px; width:100%; border:1px solid var(--border); border-radius:6px; padding:4px; font-size:16px; font-weight:900;">
+                    </div>
+                    <div>
+                        <span>Máximo nodos</span>
+                        <input id="cfgMaxNodes" type="number" min="1" max="20" value="8"
+                            style="margin-top:8px; width:100%; border:1px solid var(--border); border-radius:6px; padding:4px; font-size:16px; font-weight:900;">
+                    </div>
+                </div>
+                <div style="margin-top:12px; text-align:right;">
+                    <button id="applyConfigButton" class="primary-button" type="button">Aplicar configuración</button>
                 </div>
                 </div>
 

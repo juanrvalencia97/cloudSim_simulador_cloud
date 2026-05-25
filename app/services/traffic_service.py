@@ -80,6 +80,7 @@ class TrafficSimulator:
         self._next_user_id = 1
         self._next_request_id = 1
         self.running = False
+        self.paused = False
 
     def generate_users(self, count):
         """Create virtual users and immediately send an initial traffic burst."""
@@ -121,6 +122,7 @@ class TrafficSimulator:
 
             return {
                 "running": self.running,
+                "paused": self.paused,
                 "traffic_mode": "virtual-users" if self.running else "idle",
                 "autoscaling": auto_scaler.status(),
                 "load_balancer": load_balancer.status(),
@@ -174,7 +176,8 @@ class TrafficSimulator:
 
     def _advance_unlocked(self):
         """Release finished requests and generate fresh requests for active users."""
-
+        if self.paused:
+            return
         now = datetime.now(timezone.utc)
         self._release_finished_requests_unlocked(now)
 

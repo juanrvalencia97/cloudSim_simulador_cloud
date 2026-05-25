@@ -90,3 +90,25 @@ export function releaseRequest(nodeId) {
         body: JSON.stringify({}),
     });
 }
+
+export function resetSimulation() {
+    return requestJson("/api/reset", { method: "POST" });
+}
+
+export function togglePause() {
+    return requestJson("/api/traffic/pause", { method: "POST" });
+}
+
+export function removeUsers(count) {
+    return requestJson("/api/traffic/users", {
+        method: "DELETE",
+        body: JSON.stringify({ count }),
+    });
+}
+
+export function updateConfig(params) {
+    return requestJson("/api/config", {
+        method: "POST",
+        body: JSON.stringify(params),
+    });
+}
